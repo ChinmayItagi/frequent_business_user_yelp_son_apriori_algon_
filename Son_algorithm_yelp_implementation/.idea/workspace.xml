@@ -284,7 +284,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="67" y="25" width="1299" height="743" extended-state="6" />
+    <frame x="67" y="25" width="1299" height="743" extended-state="7" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.83864117" visible="true" weight="0.32445142" />
       <window_info id="Structure" order="1" sideWeight="0.16135882" side_tool="true" weight="0.023510972" />
