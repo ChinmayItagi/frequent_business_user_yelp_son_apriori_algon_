@@ -9,7 +9,23 @@ import json
 thresh = 70
 
 df_bus = sc.textFile('/home/chinmay/Desktop/business.json').map(lambda x: json.loads(x))
-df_bus_1 = df_bus.map(lambda df:(df['business_id'],df['state'])).filter(lambda x:x[1]=='NV').cache()
+df_bus_1 = df_bus.map(lambda df:(df['business_id'],df['categories'],df['name'],df['address'],df['postal_code']))\
+.filter(lambda x:x[0]=='RESDUcs7fIiihp38-d6_6g' or x[0]=='K7lWdNUhCbcnEvI0NhGewg' or x[0]=='iCQpiavjjPzJ5_3gPD5Ebg').collect()
+print(df_bus_1)
+
+
+#JyxHvtj-syke7m9rbza7mA', 'UPIYuRaZvknINOd1w8kqRQ', 'j5nPiTwWEFr-VsePew7Sjg'
+
+
+
+#'4k3RlMAMd46DZ_JyZU0lMg', 'JyxHvtj-syke7m9rbza7mA', 'UPIYuRaZvknINOd1w8kqRQ'
+
+#'7sPNbCx7vGAaH7SbNPZ6oA', 'JyxHvtj-syke7m9rbza7mA', 'UPIYuRaZvknINOd1w8kqRQ'
+#'A5Rkh7UymKm0_Rxm9K2PJw', 'BxKe9Xt_fN6qBzrTofHuEQ', 'FaHADZARwnY4yvlvpnsfGA'
+
+
+#K7lWdNUhCbcnEvI0NhGewg', 'RESDUcs7fIiihp38-d6_6g', 'iCQpiavjjPzJ5_3gPD5Ebg'
+"""""
 df_rev = sc.textFile('/home/chinmay/Desktop/review.json').map(lambda x: json.loads(x))
 df_rev_1 = df_rev.map(lambda df :(df['business_id'] ,df['user_id'])).cache()
 df_final_yelp = df_rev_1.join(df_bus_1).map(lambda x :[x[1][0] ,x[0]])
@@ -34,3 +50,4 @@ with open("yelp_csv.csv",'w') as f:
     for i in df_final_yelp_1:
         f.write(i[0]+","+str(i[1])+"\n")
 
+"""""

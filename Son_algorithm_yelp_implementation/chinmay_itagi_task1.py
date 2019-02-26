@@ -3,9 +3,9 @@ import pyspark
 import itertools
 sc = pyspark.SparkContext()
 import math
+import sys
 import collections
 import os
-import sys
 def frequentitems(a):
 
     l={}
@@ -44,8 +44,6 @@ def frequentitems(a):
                             issubset_count[u] += 1
                     elif u not in issubset_count:
                         issubset_count[u] = 1
-            count = count + 1
-            #print("LOOP ending",count)
         for k, v in issubset_count.items():
 
             if v >= s_new:
@@ -59,7 +57,7 @@ def frequentitems(a):
         while len(issubset_count) != 0:
             issubset_count = {}
             itemsets = []
-            #print("len", len_rdd_set)
+
             for i in list(len_rdd_set):
                 for j in list(len_rdd_set):
                     tempo = tuple(sorted(set(i).union(set(j))))
@@ -76,7 +74,7 @@ def frequentitems(a):
             #print("len_2", len_rdd_set)
             item = itemsets
             len_rdd_set = []
-
+            #print("item", item)
             for i in item:
                 for j in chunk:
                     if (set(i).issubset(j)):
@@ -98,11 +96,6 @@ def frequentitems(a):
             K += 1
     yield frequentitemset_final
 
-
-
-
-
-
 def map2(candiset):
     counter = {}
     temp_list=[]
@@ -120,61 +113,61 @@ def map2(candiset):
     yield temp_list
 
 
-
-
 if __name__== '__main__':
-    #Reading the file
+
     st = time.time()
     rdd = sc.textFile(sys.argv[3])
-    def country_partitioner(b):
-        return hash(b)
     header = rdd.first()
     support = int(sys.argv[2])
-
-    threshold = int(sys.argv[1])
+    case= int(sys.argv[1])
+    output_path = sys.argv[4]+"chinmay_itagi_task1.txt"
+    a=0
     frequentitemset_final = []
+    if case ==1:
+        rdd_case_1 = rdd.filter(lambda x: x != header).map(lambda x: x.split(",")).map(lambda x:(x[0],x[1])).groupByKey().mapValues(set).map(lambda x: x[1]).cache()
+        rdd_collect = rdd_case_1.collect()
+        number_of_bus = len(rdd_collect)
+        rdd_test_final_reduce_output= rdd_case_1.mapPartitions(frequentitems).flatMap(lambda x:x).map(lambda x:(x,1)).reduceByKey(lambda x,y:(x+y)).map(lambda x: x[0]).cache()
+        intermediate_outfile = rdd_test_final_reduce_output.collect()
+        rdd_test_final_reduce_output= rdd_test_final_reduce_output.mapPartitions(map2).flatMap(lambda x:x).collect()
 
-    output_path = sys.argv[4]+"chinmay_itagi_task2.txt"
+    elif case==2:
+        rdd_case_2 = rdd.filter(lambda x: x != header).map(lambda x: x.split(",")).map(lambda x:(x[1],x[0])).groupByKey().mapValues(set).map(lambda x: x[1]).cache()
+        rdd_collect = rdd_case_2.collect()
+        number_of_bus = len(rdd_collect)
+        rdd_test_final_reduce_output= rdd_case_2.mapPartitions(frequentitems)
+        #intermediate_outfile = rdd_test_final_reduce_output.flatMap(lambda x:x).collect()
 
-
-
-    rdd_case_1 = rdd.filter(lambda x: x != header).map(lambda x: x.split(",")).map(lambda x:(x[0],x[1])).partitionBy(4,country_partitioner)
-    rdd_case_1=rdd_case_1.groupByKey().mapValues(lambda x: set(x)).map(lambda x: x[1]).filter(lambda x:len(set(x))>threshold).cache()
-    #print("no _of Part", rdd.getNumPartitions())
-    rdd_collect = rdd_case_1.collect()
-    number_of_bus = len(rdd_collect)
-    rdd_test_final_reduce_output= rdd_case_1.mapPartitions(frequentitems).flatMap(lambda x:x).map(lambda x:(x,1)).reduceByKey(lambda x,y:(x+y)).map(lambda x: x[0]).cache()
-    intermediate_outfile = rdd_test_final_reduce_output.collect()
-    rdd_test_final_reduce_output=rdd_test_final_reduce_output.mapPartitions(map2).flatMap(lambda x:x).collect()
-
-
-
+        rdd_test_final_reduce_output= rdd_test_final_reduce_output.flatMap(lambda x:x).map(lambda x:(x,1)).reduceByKey(lambda x,y:(x+y)).map(lambda x: x[0]).cache()
+        intermediate_outfile = rdd_test_final_reduce_output.collect()
+        rdd_test_final_reduce_output = rdd_test_final_reduce_output.mapPartitions(map2).flatMap(lambda x:x).collect()
 
     sorting_final = collections.defaultdict(list)
     x_final = sorted(rdd_test_final_reduce_output, key=len)
     for i in x_final:
         sorting_final[len(i)].append(i)
     sorting = collections.defaultdict(list)
-    x = sorted(intermediate_outfile, key=len)
+    x = sorted(intermediate_outfile,key=len)
     for i in x:
         sorting[len(i)].append(i)
     with open(output_path, 'w') as f:
         f.write("Candidates:\n")
-        for k, v in sorting.items():
-            # sorting[k]=sorted(v)
+        for k,v in sorting.items():
+            #sorting[k]=sorted(v)
             for values in sorted(v):
-                if (k == 1):
-                    f.write("('" + values[0] + "'),")
+                if(k==1):
+                    f.write("('"+values[0]+"'),")
                 else:
-                    f.write(str(values) + ",")
+                    f.write(str(values)+",")
             f.seek(f.tell() - 1, os.SEEK_SET)
             f.write("\n\n")
 
 
-        # with open("finalout", 'w') as f:
+
+        #with open("finalout", 'w') as f:
         f.write("Frequent Itemsets:\n")
         for k, v in sorting_final.items():
-            # sorting[k]=sorted(v)
+                # sorting[k]=sorted(v)
             for values in sorted(v):
                 if (k == 1):
                     f.write("('" + values[0] + "'),")
@@ -184,8 +177,6 @@ if __name__== '__main__':
             f.write("\n\n")
 
 
-
-
-
+    #print(rdd_test_final_reduce_output)
     end = time.time()
-    print(end - st)
+    print("Duration:",end - st)
